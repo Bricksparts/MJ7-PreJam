@@ -54,7 +54,8 @@ func get_input_axis():
 #	 = inputAxis * 16
 
 func update_timers(delta):
-	airTimer = max(0, airTimer - 72 * delta)
+	if airTimer > 0:
+		airTimer = max(0, airTimer - 72 * delta)
 
 func update_move_action():
 	playerMoveAction = moveAction.none
