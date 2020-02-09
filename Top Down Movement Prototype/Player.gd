@@ -17,6 +17,7 @@ const FORCE_SPRINT = 200
 const FORCE_SPRINT_DECEL = 300
 const FORCE_HALT = 5
 const FORCE_GLIDE = 600
+const FORCE_GLIDE_HALT = 5
 const FORCE_JUMP = 200
 const FORCE_JUMP_STOP = 50
 
@@ -30,6 +31,7 @@ const TIMER_SIDESTEP = 18
 var airTimer = 0
 
 var motion = Vector2()
+var glideMotion = Vector2()
 var inputAxis = Vector2()
 var jumpAxis = Vector2()
 
@@ -142,16 +144,23 @@ func calc_force_halt(multiplier = 1):
 	return -motion.normalized() * FORCE_HALT * multiplier * motion.length()
 
 func calc_force_sprint(multiplier = 1):
-	#Calculates a vector2 that represents the friction' force that slows a player down to the running threshold
-	return -motion.normalized() * FORCE_OVERRUN_DECEL * multiplier
+	#Calculates a vector2 that represents the 'acceleration' force a player inputs while sprinting
+	return inputAxis * FORCE_SPRINT * multiplier
+
+func calc_force_sprint_decel(multiplier = 1):
+	#Calculates a vector2 that represent the 'friction' force that slows a player down to the running threshold while sprinting
+	return -motion.normalized() * FORCE_SPRINT_DECEL * multiplier
 
 func calc_force_roll(vectorRoll):
 	pass
 
 func calc_force_glide(multiplier = 1):
 	#Calculates a vector2 that represents the 'input' force from gliding
-	var vectorGlide = inputAxis * FORCE_GLIDE * multiplier
-	return vectorGlide.clamped(THRESHOLD_GLIDE)
+	if inputAxis == Vector2.ZERO:
+		glideMotion = 
+	glideMotion += FORCE_GLIDE * multiplier
+	return glideMotion
+#	return vectorGlide.clamped(THRESHOLD_GLIDE)
 
 func apply_movement(delta):
 #	var vectorMovementSum = Vector2()
