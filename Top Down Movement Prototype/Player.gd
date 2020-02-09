@@ -80,7 +80,10 @@ func calc_force_glide(multiplier = 1):
 func apply_movement(delta):
 #	var vectorMovementSum = Vector2()
 	if playerState == state.halt:
-		motion += calc_force_halt() * delta
+		if motion.length() < 5:
+			motion = Vector2.ZERO
+		else:
+			motion += calc_force_halt() * delta
 	
 	elif playerState == state.run:
 		motion += calc_force_run() * delta
