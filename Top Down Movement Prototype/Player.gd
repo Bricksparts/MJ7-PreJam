@@ -12,7 +12,7 @@ const SPRINT_THRESHOLD = 1200
 
 const FORCE_RUN = 2000
 const FORCE_OVERRUN_DECEL = 300
-const FORCE_HALT = 100
+const FORCE_HALT = 5
 const FORCE_GLIDE = 600
 
 const THRESHOLD_RUN = 200
@@ -63,7 +63,7 @@ func calc_force_run(multiplier = 1):
 
 func calc_force_halt(multiplier = 1):
 	#Calculates a vector2 that represents the force while the player is sliding to a halt on the ground while there is no player input
-	return -motion.normalized() * FORCE_HALT * multiplier
+	return -motion.normalized() * FORCE_HALT * multiplier * motion.length()
 
 func calc_force_overrun_decel(multiplier = 1):
 	#Calculates a vector2 that represents the ''input'friction' force that slows a player down to the running threshold
