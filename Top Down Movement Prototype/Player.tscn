@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://Sprites/ProtoPlayer1.png" type="Texture" id=1]
 [ext_resource path="res://Player.gd" type="Script" id=2]
@@ -6,12 +6,18 @@
 [ext_resource path="res://Sprites/ProtoPlayer2.png" type="Texture" id=4]
 [ext_resource path="res://Sprites/ProtoPlayer3.png" type="Texture" id=5]
 [ext_resource path="res://Sprites/ProtoPlayer4.png" type="Texture" id=6]
+[ext_resource path="res://Sprites/ProtoPlayer5.png" type="Texture" id=7]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
 "frames": [ ExtResource( 6 ) ],
 "loop": true,
 "name": "Run",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 7 ) ],
+"loop": true,
+"name": "Sprint",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 5 ) ],
@@ -39,7 +45,7 @@ script = ExtResource( 2 )
 [node name="AnimatedSprite" type="AnimatedSprite" parent="."]
 position = Vector2( -6.5, -6.5 )
 frames = SubResource( 1 )
-animation = "Run"
+animation = "Sprint"
 centered = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

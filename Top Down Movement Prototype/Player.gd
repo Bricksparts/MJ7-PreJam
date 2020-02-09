@@ -4,7 +4,7 @@ onready var pointer:= $Pointer
 onready var ray:= $Pointer/RayCast2D
 onready var reticle:= $Pointer/Reticle
 
-enum moveState {halt, run, glide, sprint, walled, falling}
+enum moveState {stopped, halt, run, glide, sprint, walled, falling}
 enum moveAction {none, jump, sidestep, roll, vault}
 
 var playerMoveState = moveState.halt
@@ -13,7 +13,8 @@ var playerMoveAction = moveAction.none
 const SPRINT_THRESHOLD = 1200
 
 const FORCE_RUN = 2000
-const FORCE_OVERRUN_DECEL = 300
+const FORCE_SPRINT = 200
+const FORCE_SPRINT_DECEL = 300
 const FORCE_HALT = 5
 const FORCE_GLIDE = 600
 const FORCE_JUMP = 200
@@ -57,8 +58,34 @@ func update_timers(delta):
 	if airTimer > 0:
 		airTimer = max(0, airTimer - 72 * delta)
 
-func update_move_action():
+func update_player_state():
+	#Updates the player state and initiates actions based on player input
 	playerMoveAction = moveAction.none
+	
+	if playerMoveState == moveState.stopped:
+		pass
+	
+	elif playerMoveState == moveState.halt:
+		pass
+	
+	elif playerMoveState == moveState.run:
+		#Transitions and actions from the Run state
+		if Input.is_action_just_released("action_jump"):
+			#Initiate jump and transition to Glide
+			playerMoveState = moveState.glide
+			do_action_jump()
+		elif inputAxis == Vector2.ZERO:
+			#transition to Halt
+			playerMoveState = moveState.halt
+	
+	elif playerMoveState == moveState.sprint:
+		pass
+	
+	elif playerMoveState == moveState.glide:
+		pass
+
+func update_move_action():
+	
 	
 	if playerMoveState == moveState.run:
 		if Input.is_action_pressed("action_jump"):
@@ -114,8 +141,8 @@ func calc_force_halt(multiplier = 1):
 	#Calculates a vector2 that represents the force while the player is sliding to a halt on the ground while there is no player input
 	return -motion.normalized() * FORCE_HALT * multiplier * motion.length()
 
-func calc_force_overrun_decel(multiplier = 1):
-	#Calculates a vector2 that represents the ''input'friction' force that slows a player down to the running threshold
+func calc_force_sprint(multiplier = 1):
+	#Calculates a vector2 that represents the friction' force that slows a player down to the running threshold
 	return -motion.normalized() * FORCE_OVERRUN_DECEL * multiplier
 
 func calc_force_roll(vectorRoll):
@@ -139,7 +166,7 @@ func apply_movement(delta):
 		motion = motion.clamped(THRESHOLD_RUN)
 	
 	elif playerMoveState == moveState.sprint:
-		pass
+		motion 
 
 func update_animation():
 	if playerMoveState == moveState.halt:
@@ -148,6 +175,8 @@ func update_animation():
 		$AnimatedSprite.play("Run")
 	elif playerMoveState == moveState.glide:
 		$AnimatedSprite.play("Glide")
+	elif playerMoveState == moveState.sprint:
+		$AnimatedSprite.play("Sprint")
 
 #	var maxSpeedMultiplier
 #	if grounded:
