@@ -4,7 +4,7 @@ onready var pointer:= $Pointer
 onready var ray:= $Pointer/RayCast2D
 onready var reticle:= $Pointer/Reticle
 
-enum moveState {halt, run, glide, sprint, walled}
+enum moveState {halt, run, glide, sprint, walled, falling}
 enum moveAction {none, jump, sidestep, roll, vault}
 
 var playerMoveState = moveState.halt
@@ -17,6 +17,7 @@ const FORCE_OVERRUN_DECEL = 300
 const FORCE_HALT = 5
 const FORCE_GLIDE = 600
 const FORCE_JUMP = 200
+const FORCE_JUMP_STOP = 50
 
 const THRESHOLD_RUN = 200
 const THRESHOLD_GLIDE = 50
@@ -39,6 +40,7 @@ func _physics_process(delta):
 	apply_movement(delta)
 	motion = move_and_slide(motion)
 	print(airTimer)
+	update_animation()
 #	update_reticle()
 
 func get_input_axis():
@@ -73,7 +75,9 @@ func update_input():
 		if inputAxis != Vector2.ZERO:
 			playerMoveState = moveState.run
 	
-#	elif playerMoveState == moveState.glide:
+	elif playerMoveState == moveState.glide:
+		if airTimer == 0:
+			glide_check_for_ground()
 
 #func apply_friction(amount):
 #	if motion.length() > amount:
@@ -85,6 +89,17 @@ func do_action_jump():
 	#Makes the player perform a jump
 	motion += calc_force_jump()
 	airTimer = TIMER_JUMP
+
+func glide_check_for_ground():
+	#Checks if there is ground beneath the player and transitions them to the correct speed and player state
+	motion = motion.clamped(motion.length() - FORCE_JUMP_STOP)
+	
+	if motion.length() >= (THRESHOLD_RUN + 10):
+		playerMoveState = moveState.sprint
+	elif inputAxis != Vector2.ZERO:
+		playerMoveState = moveState.run
+	else:
+		playerMoveState = moveState.halt
 
 func calc_force_jump(multiplier = 1):
 	#Calculates a vector2 that represents the force from the starting phase of a jump
@@ -124,6 +139,14 @@ func apply_movement(delta):
 	
 	elif playerMoveState == moveState.sprint:
 		pass
+
+func update_animation():
+	if playerMoveState == moveState.halt:
+		$AnimatedSprite.play("Halt")
+	elif playerMoveState == moveState.run:
+		$AnimatedSprite.play("Run")
+	elif playerMoveState == moveState.glide:
+		$AnimatedSprite.play("Glide")
 
 #	var maxSpeedMultiplier
 #	if grounded:
