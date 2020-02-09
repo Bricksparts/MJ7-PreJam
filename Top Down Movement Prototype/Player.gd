@@ -4,21 +4,19 @@ onready var pointer:= $Pointer
 onready var ray:= $Pointer/RayCast2D
 onready var reticle:= $Pointer/Reticle
 
+enum state {halt, run, glide, sprint, walled}
 
-var sprinting = false
-var grounded = true
-var walled = false
-var jump = false
+var playerState = state.halt
 
 const SPRINT_THRESHOLD = 1200
 
-const FORCE_RUN = 8000
+const FORCE_RUN = 2000
 const FORCE_OVERRUN_DECEL = 300
-const FORCE_HALT = 200
+const FORCE_HALT = 100
 const FORCE_GLIDE = 600
 
-const THRESHOLD_RUN = 800
-const THRESHOLD_GLIDE = 100
+const THRESHOLD_RUN = 200
+const THRESHOLD_GLIDE = 50
 
 var motion = Vector2()
 var inputAxis = Vector2()
@@ -29,7 +27,7 @@ func _physics_process(delta):
 	update_input()
 	apply_movement(delta)
 	motion = move_and_slide(motion)
-	update_reticle()
+#	update_reticle()
 
 func get_input_axis():
 	var axis = Vector2.ZERO
@@ -37,12 +35,17 @@ func get_input_axis():
 	axis.y = int(Input.is_action_pressed("ui_down")) - int(Input.is_action_pressed("ui_up"))
 	return axis.normalized()
 
-func update_reticle():
-	reticle.draw_set_transform()
-	 = inputAxis * 16
+#func update_reticle():
+#	reticle.draw_set_transform()
+#	 = inputAxis * 16
 
 func update_input():
-	var input = Input.is_key_pressed(KEY_SPACE)
+	if playerState == state.run:
+		if inputAxis == Vector2.ZERO:
+			playerState = state.halt
+	elif playerState == state.halt:
+		if inputAxis != Vector2.ZERO:
+			playerState = state.run
 
 #func apply_friction(amount):
 #	if motion.length() > amount:
@@ -76,8 +79,15 @@ func calc_force_glide(multiplier = 1):
 
 func apply_movement(delta):
 #	var vectorMovementSum = Vector2()
-	motion += calc_force_run() * delta
-	motion = motion.clamped(THRESHOLD_RUN)
+	if playerState == state.halt:
+		motion += calc_force_halt() * delta
+	
+	elif playerState == state.run:
+		motion += calc_force_run() * delta
+		motion = motion.clamped(THRESHOLD_RUN)
+	
+	elif playerState == state.sprint:
+		pass
 
 #	var maxSpeedMultiplier
 #	if grounded:
