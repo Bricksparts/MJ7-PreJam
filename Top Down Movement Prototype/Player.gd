@@ -33,6 +33,7 @@ var airTimer = 0
 var velocity = Vector2()
 var glideMotion = Vector2()
 var inputAxis = Vector2()
+var joyInput=Vector2(0,0)
 #var jumpAxis = Vector2()
 
 func _physics_process(delta):
@@ -49,7 +50,7 @@ func get_input_axis():
 	var axis = Vector2.ZERO
 	axis.x = int(Input.is_action_pressed("ui_right")) - int(Input.is_action_pressed("ui_left"))
 	axis.y = int(Input.is_action_pressed("ui_down")) - int(Input.is_action_pressed("ui_up"))
-	return axis.normalized()
+	return (axis.normalized()+joyInput.normalized()).normalized()
 
 #func update_reticle():
 #	reticle.draw_set_transform()
@@ -254,3 +255,7 @@ func update_animation():
 #		velocity = velocity.clamped(MED_SPEED_MAX)
 #	else:
 #		velocity = Vector2.ZERO
+
+
+func _on_Joystick_joy_position(pos):
+	joyInput=pos
