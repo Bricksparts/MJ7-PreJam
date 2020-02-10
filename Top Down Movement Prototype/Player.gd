@@ -5,27 +5,27 @@ onready var ray:= $Pointer/RayCast2D
 onready var reticle:= $Pointer/Reticle
 
 enum moveState {stopped, halt, run, glide, sprint, walled, falling}
-enum moveAction {none, jump, sidestep, roll, vault}
+#enum moveAction {none, jump, sidestep, roll, vault}
 
 var playerMoveState = moveState.halt
-var playerMoveAction = moveAction.none
+#var playerMoveAction = moveAction.none
 
 const SPRINT_THRESHOLD = 1200
 
-const FORCE_RUN = 2000
-const FORCE_SPRINT = 200
-const FORCE_SPRINT_DECEL = 300
+const FORCE_RUN = 1600
+const FORCE_SPRINT = 1000
+const FORCE_SPRINT_DECEL = 1100
 const FORCE_HALT = 5
 const FORCE_GLIDE = 600
 const FORCE_GLIDE_HALT = 5
 const FORCE_JUMP = 200
 const FORCE_JUMP_STOP = 50
 
-const THRESHOLD_RUN = 200
+const THRESHOLD_RUN = 160
 const THRESHOLD_GLIDE = 50
 
 const TIMER_COYOTE_TIME = 24
-const TIMER_JUMP = 30
+const TIMER_JUMP = 12
 const TIMER_SIDESTEP = 18
 
 var airTimer = 0
@@ -38,8 +38,7 @@ var jumpAxis = Vector2()
 func _physics_process(delta):
 	update_timers(delta)
 	inputAxis = get_input_axis()
-	update_move_action()
-	update_input()
+	update_player_state()
 	apply_movement(delta)
 	motion = move_and_slide(motion)
 	print(airTimer)
@@ -62,52 +61,59 @@ func update_timers(delta):
 
 func update_player_state():
 	#Updates the player state and initiates actions based on player input
-	playerMoveAction = moveAction.none
 	
 	if playerMoveState == moveState.stopped:
-		pass
+		if inputAxis != Vector2.ZERO:
+			playerMoveState = moveState.run
 	
 	elif playerMoveState == moveState.halt:
-		pass
+		if inputAxis != Vector2.ZERO:
+			playerMoveState = moveState.run
+		elif motion.length() == 0:
+			playerMoveState = moveState.stopped
 	
 	elif playerMoveState == moveState.run:
 		#Transitions and actions from the Run state
 		if Input.is_action_just_released("action_jump"):
-			#Initiate jump and transition to Glide
-			playerMoveState = moveState.glide
+			#Initiate jump
 			do_action_jump()
 		elif inputAxis == Vector2.ZERO:
 			#transition to Halt
 			playerMoveState = moveState.halt
 	
 	elif playerMoveState == moveState.sprint:
-		pass
-	
-	elif playerMoveState == moveState.glide:
-		pass
-
-func update_move_action():
-	
-	
-	if playerMoveState == moveState.run:
-		if Input.is_action_pressed("action_jump"):
-			playerMoveAction = moveAction.jump
-
-func update_input():
-	if playerMoveState == moveState.run:
-		if playerMoveAction == moveAction.jump:
+		if Input.is_action_just_released("action_jump"):
+			#Initiate jump
 			do_action_jump()
-			playerMoveState = moveState.glide
-		if inputAxis == Vector2.ZERO:
-			playerMoveState = moveState.halt
-	
-	elif playerMoveState == moveState.halt:
-		if inputAxis != Vector2.ZERO:
+		elif motion.length() <= (THRESHOLD_RUN + 10):
 			playerMoveState = moveState.run
 	
 	elif playerMoveState == moveState.glide:
 		if airTimer == 0:
-			glide_check_for_ground()
+			touch_ground()
+
+#func update_move_action():
+#
+#
+#	if playerMoveState == moveState.run:
+#		if Input.is_action_pressed("action_jump"):
+#			playerMoveAction = moveAction.jump
+
+#func update_input():
+#	if playerMoveState == moveState.run:
+#		if playerMoveAction == moveAction.jump:
+#			do_action_jump()
+#			playerMoveState = moveState.glide
+#		if inputAxis == Vector2.ZERO:
+#			playerMoveState = moveState.halt
+#
+#	elif playerMoveState == moveState.halt:
+#		if inputAxis != Vector2.ZERO:
+#			playerMoveState = moveState.run
+#
+#	elif playerMoveState == moveState.glide:
+#		if airTimer == 0:
+#			touch_ground()
 
 #func apply_friction(amount):
 #	if motion.length() > amount:
@@ -117,18 +123,24 @@ func update_input():
 
 func do_action_jump():
 	#Makes the player perform a jump
+	playerMoveState = moveState.glide
 	motion += calc_force_jump()
 	airTimer = TIMER_JUMP
 
-func glide_check_for_ground():
-	#Checks if there is ground beneath the player and transitions them to the correct speed and player state
+func touch_ground():
+	#Transitions them to the correct speed and player state (does not yet check if they land on ground or fall yet)
+	
+	#Slows the player by FORCE_JUMP_STOP
 	motion = motion.clamped(motion.length() - FORCE_JUMP_STOP)
 	
 	if motion.length() >= (THRESHOLD_RUN + 10):
+		#If fast enough, transitions the player to sprinting
 		playerMoveState = moveState.sprint
 	elif inputAxis != Vector2.ZERO:
+		#If not fast enough to Sprint, checks if the player transitions to a run
 		playerMoveState = moveState.run
 	else:
+		#If not fast enough to Sprint, checks if the player transitions to a halt
 		playerMoveState = moveState.halt
 
 func calc_force_jump(multiplier = 1):
@@ -157,10 +169,11 @@ func calc_force_roll(vectorRoll):
 func calc_force_glide(multiplier = 1):
 	#Calculates a vector2 that represents the 'input' force from gliding
 	if inputAxis == Vector2.ZERO:
-		glideMotion = 
-	glideMotion += FORCE_GLIDE * multiplier
+		glideMotion = -glideMotion.normalized() * FORCE_GLIDE_HALT * multiplier * glideMotion.length()
+	else:
+		glideMotion += inputAxis * FORCE_GLIDE * multiplier
+	glideMotion = glideMotion.clamped(THRESHOLD_GLIDE)
 	return glideMotion
-#	return vectorGlide.clamped(THRESHOLD_GLIDE)
 
 func apply_movement(delta):
 #	var vectorMovementSum = Vector2()
@@ -175,7 +188,8 @@ func apply_movement(delta):
 		motion = motion.clamped(THRESHOLD_RUN)
 	
 	elif playerMoveState == moveState.sprint:
-		motion 
+		motion += calc_force_sprint() * delta
+		motion += calc_force_sprint_decel() * delta
 
 func update_animation():
 	if playerMoveState == moveState.halt:
