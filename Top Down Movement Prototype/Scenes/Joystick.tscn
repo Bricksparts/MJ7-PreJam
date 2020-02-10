@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://Scripts/Joystick.gd" type="Script" id=1]
+[ext_resource path="res://icon.png" type="Texture" id=2]
+
+[node name="Joystick" type="Node2D"]
+script = ExtResource( 1 )
+Joy_Range_P = 50
+joystick_rest_pos = Vector2( 150, 200 )
+
+[node name="JoyBase" type="Sprite" parent="."]
+self_modulate = Color( 1, 1, 1, 0.368627 )
+texture = ExtResource( 2 )
+
+[node name="Joy" type="Sprite" parent="."]
+scale = Vector2( 0.5, 0.5 )
+texture = ExtResource( 2 )
