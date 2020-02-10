@@ -7,7 +7,7 @@ onready var reticle:= $Pointer/Reticle
 enum moveState {stopped, halt, run, glide, sprint, walled, falling}
 #enum moveAction {none, jump, sidestep, roll, vault}
 
-var playerMoveState = moveState.halt
+var playerMoveState = moveState.stopped
 #var playerMoveAction = moveAction.none
 
 const SPRINT_THRESHOLD = 1200
@@ -30,17 +30,17 @@ const TIMER_SIDESTEP = 18
 
 var airTimer = 0
 
-var motion = Vector2()
+var velocity = Vector2()
 var glideMotion = Vector2()
 var inputAxis = Vector2()
-var jumpAxis = Vector2()
+#var jumpAxis = Vector2()
 
 func _physics_process(delta):
 	update_timers(delta)
 	inputAxis = get_input_axis()
 	update_player_state()
 	apply_movement(delta)
-	motion = move_and_slide(motion)
+	velocity = move_and_slide(velocity)
 	print(airTimer)
 	update_animation()
 #	update_reticle()
@@ -69,7 +69,7 @@ func update_player_state():
 	elif playerMoveState == moveState.halt:
 		if inputAxis != Vector2.ZERO:
 			playerMoveState = moveState.run
-		elif motion.length() == 0:
+		elif velocity.length() == 0:
 			playerMoveState = moveState.stopped
 	
 	elif playerMoveState == moveState.run:
@@ -85,7 +85,7 @@ func update_player_state():
 		if Input.is_action_just_released("action_jump"):
 			#Initiate jump
 			do_action_jump()
-		elif motion.length() <= (THRESHOLD_RUN + 10):
+		elif velocity.length() <= (THRESHOLD_RUN + 10):
 			playerMoveState = moveState.run
 	
 	elif playerMoveState == moveState.glide:
@@ -116,24 +116,24 @@ func update_player_state():
 #			touch_ground()
 
 #func apply_friction(amount):
-#	if motion.length() > amount:
-#		motion -= motion.normalized() * amount
+#	if velocity.length() > amount:
+#		velocity -= velocity.normalized() * amount
 #	else:
-#		motion = Vector2.ZERO
+#		velocity = Vector2.ZERO
 
 func do_action_jump():
 	#Makes the player perform a jump
 	playerMoveState = moveState.glide
-	motion += calc_force_jump()
+	velocity += calc_force_jump()
 	airTimer = TIMER_JUMP
 
 func touch_ground():
 	#Transitions them to the correct speed and player state (does not yet check if they land on ground or fall yet)
 	
 	#Slows the player by FORCE_JUMP_STOP
-	motion = motion.clamped(motion.length() - FORCE_JUMP_STOP)
+	velocity = velocity.clamped(velocity.length() - FORCE_JUMP_STOP)
 	
-	if motion.length() >= (THRESHOLD_RUN + 10):
+	if velocity.length() >= (THRESHOLD_RUN + 10):
 		#If fast enough, transitions the player to sprinting
 		playerMoveState = moveState.sprint
 	elif inputAxis != Vector2.ZERO:
@@ -153,7 +153,7 @@ func calc_force_run(multiplier = 1):
 
 func calc_force_halt(multiplier = 1):
 	#Calculates a vector2 that represents the force while the player is sliding to a halt on the ground while there is no player input
-	return -motion.normalized() * FORCE_HALT * multiplier * motion.length()
+	return -velocity.normalized() * FORCE_HALT * multiplier * velocity.length()
 
 func calc_force_sprint(multiplier = 1):
 	#Calculates a vector2 that represents the 'acceleration' force a player inputs while sprinting
@@ -161,7 +161,7 @@ func calc_force_sprint(multiplier = 1):
 
 func calc_force_sprint_decel(multiplier = 1):
 	#Calculates a vector2 that represent the 'friction' force that slows a player down to the running threshold while sprinting
-	return -motion.normalized() * FORCE_SPRINT_DECEL * multiplier
+	return -velocity.normalized() * FORCE_SPRINT_DECEL * multiplier
 
 func calc_force_roll(vectorRoll):
 	pass
@@ -178,18 +178,18 @@ func calc_force_glide(multiplier = 1):
 func apply_movement(delta):
 #	var vectorMovementSum = Vector2()
 	if playerMoveState == moveState.halt:
-		if motion.length() < 5:
-			motion = Vector2.ZERO
+		if velocity.length() < 5:
+			velocity = Vector2.ZERO
 		else:
-			motion += calc_force_halt() * delta
+			velocity += calc_force_halt() * delta
 	
 	elif playerMoveState == moveState.run:
-		motion += calc_force_run() * delta
-		motion = motion.clamped(THRESHOLD_RUN)
+		velocity += calc_force_run() * delta
+		velocity = velocity.clamped(THRESHOLD_RUN)
 	
 	elif playerMoveState == moveState.sprint:
-		motion += calc_force_sprint() * delta
-		motion += calc_force_sprint_decel() * delta
+		velocity += calc_force_sprint() * delta
+		velocity += calc_force_sprint_decel() * delta
 
 func update_animation():
 	if playerMoveState == moveState.halt:
@@ -209,48 +209,48 @@ func update_animation():
 #
 #	if inputAxis == Vector2.ZERO:
 #		#Apply friction while coming to a stop on the ground
-##		motion -= motion.normalized() * FORCE_RUN * delta * (motion.length() / SPRINT_THRESHOLD)
-#		if motion.length() > FORCE_RUN * .05:
-#			motion -= motion.normalized() * FORCE_RUN * .25 * delta
+##		velocity -= velocity.normalized() * FORCE_RUN * delta * (velocity.length() / SPRINT_THRESHOLD)
+#		if velocity.length() > FORCE_RUN * .05:
+#			velocity -= velocity.normalized() * FORCE_RUN * .25 * delta
 #		else:
-#			motion = Vector2.ZERO
+#			velocity = Vector2.ZERO
 #	else:
 #		#Apply input force
-#		if motion.length() < THRESHOLD_RUN + 10:
+#		if velocity.length() < THRESHOLD_RUN + 10:
 #			#Running
-#			motion += inputAxis * FORCE_RUN * delta
-#			motion = motion.clamped(THRESHOLD_RUN)
+#			velocity += inputAxis * FORCE_RUN * delta
+#			velocity = velocity.clamped(THRESHOLD_RUN)
 #		else:
 #			#Sprinting
 ##			print("player is sprinting")
-#			motion += inputAxis * FORCE_RUN * delta
-#			motion -= motion.normalized() * FORCE_RUN * .25 * delta
+#			velocity += inputAxis * FORCE_RUN * delta
+#			velocity -= velocity.normalized() * FORCE_RUN * .25 * delta
 #
 #		if jump == true:
-#			motion += inputAxis * FORCE_RUN * delta
+#			velocity += inputAxis * FORCE_RUN * delta
 	
 		
 #		var newMotion = Vector2()
 #
-#		newMotion = motion + inputAxis * FORCE_RUN * delta
-#		if newMotion.length() > THRESHOLD_RUN && motion.length() < THRESHOLD_RUN:
-#			motion = newMotion.clamped(THRESHOLD_RUN)
-#		elif motion.length() > THRESHOLD_RUN:
-#			motion -= newMotion.normalized() * FORCE_SPRINTING_DECEL * delta
+#		newMotion = velocity + inputAxis * FORCE_RUN * delta
+#		if newMotion.length() > THRESHOLD_RUN && velocity.length() < THRESHOLD_RUN:
+#			velocity = newMotion.clamped(THRESHOLD_RUN)
+#		elif velocity.length() > THRESHOLD_RUN:
+#			velocity -= newMotion.normalized() * FORCE_SPRINTING_DECEL * delta
 #		else:
-#			motion = newMotion
+#			velocity = newMotion
 		
-#		testMotion = motion + inputAxis * FORCE_RUN * delta * ((SPRINT_THRESHOLD - motion.length()) / SPRINT_THRESHOLD )
-#		if testMotion.length() > motion.length():
-#			motion = testMotion
+#		testMotion = velocity + inputAxis * FORCE_RUN * delta * ((SPRINT_THRESHOLD - velocity.length()) / SPRINT_THRESHOLD )
+#		if testMotion.length() > velocity.length():
+#			velocity = testMotion
 #		else:
-#			motion += inputAxis * FORCE_RUN * delta * ((SPRINT_THRESHOLD + motion.length()) / SPRINT_THRESHOLD )
+#			velocity += inputAxis * FORCE_RUN * delta * ((SPRINT_THRESHOLD + velocity.length()) / SPRINT_THRESHOLD )
 
-#	if motion.length() <= LOW_SPEED_MAX:
-#		motion = get_input_axis() * motion.length()
-#		motion += FORCE_RUN
-#	elif motion.length() <= MED_SPEED_MAX:
-#		motion += FORCE_RUN
-#		motion = motion.clamped(MED_SPEED_MAX)
+#	if velocity.length() <= LOW_SPEED_MAX:
+#		velocity = get_input_axis() * velocity.length()
+#		velocity += FORCE_RUN
+#	elif velocity.length() <= MED_SPEED_MAX:
+#		velocity += FORCE_RUN
+#		velocity = velocity.clamped(MED_SPEED_MAX)
 #	else:
-#		motion = Vector2.ZERO
+#		velocity = Vector2.ZERO
