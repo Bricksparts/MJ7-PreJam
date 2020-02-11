@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Sprites/ProtoPlayer1.png" type="Texture" id=1]
 [ext_resource path="res://Player.gd" type="Script" id=2]
@@ -7,12 +7,18 @@
 [ext_resource path="res://Sprites/ProtoPlayer3.png" type="Texture" id=5]
 [ext_resource path="res://Sprites/ProtoPlayer4.png" type="Texture" id=6]
 [ext_resource path="res://Sprites/ProtoPlayer5.png" type="Texture" id=7]
+[ext_resource path="res://8SideWallDetector.gd" type="Script" id=8]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
 "frames": [ ExtResource( 6 ) ],
 "loop": true,
 "name": "Run",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 4 ) ],
+"loop": true,
+"name": "Glide",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 7 ) ],
@@ -23,11 +29,6 @@ animations = [ {
 "frames": [ ExtResource( 5 ) ],
 "loop": true,
 "name": "Walled",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 4 ) ],
-"loop": true,
-"name": "Glide",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 1 ) ],
@@ -52,6 +53,7 @@ centered = false
 shape = SubResource( 2 )
 
 [node name="Pointer" type="Node2D" parent="."]
+visible = false
 
 [node name="Reticle" type="Sprite" parent="Pointer"]
 position = Vector2( 12, 0 )
@@ -59,3 +61,10 @@ texture = ExtResource( 3 )
 
 [node name="RayCast2D" type="RayCast2D" parent="Pointer"]
 cast_to = Vector2( 16, 0 )
+
+[node name="WallDetector" type="Node2D" parent="."]
+script = ExtResource( 8 )
+
+[node name="RayCast2D" type="RayCast2D" parent="WallDetector"]
+enabled = true
+[connection signal="whileDetectWestWall" from="WallDetector" to="." method="_on_WallDetector_whileDetectWestWall"]

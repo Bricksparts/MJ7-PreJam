@@ -1,12 +1,28 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Player.tscn" type="PackedScene" id=1]
-[ext_resource path="res://Scenes/Joystick.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Sprites/ProtoPlayer1.png" type="Texture" id=2]
+[ext_resource path="res://Scenes/Joystick.tscn" type="PackedScene" id=3]
+
+[sub_resource type="RectangleShape2D" id=1]
 
 [node name="World" type="Node"]
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
-position = Vector2( 27.1323, 20.9939 )
+position = Vector2( 38.9554, 19.7088 )
 
-[node name="Joystick" parent="." instance=ExtResource( 2 )]
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2( 123.579, 82.6998 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Sprite" type="Sprite" parent="StaticBody2D"]
+texture = ExtResource( 2 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource( 1 )
+
+[node name="Joystick" parent="." instance=ExtResource( 3 )]
+position = Vector2( 297.004, 124.441 )
 [connection signal="joy_position" from="Joystick" to="Player" method="_on_Joystick_joy_position"]
