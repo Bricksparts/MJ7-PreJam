@@ -17,7 +17,7 @@ const SPRINT_THRESHOLD = 1200
 
 const FORCE_WALK = 1600
 const FORCE_RUN = 400
-const FORCE_RUN_TO_WALK = 500
+const FORCE_RUN_TO_WALK = 200
 const FORCE_SPRINT = 1000
 const FORCE_SPRINT_DECEL = 1100
 const FORCE_GLIDE = 600
@@ -69,7 +69,8 @@ func _physics_process(delta):
 	apply_movement(delta)
 	velocity = move_and_slide(velocity)
 	update_animation()
-	print(playerMoveState)
+	print(velocity.length())
+#	print(playerMoveState)
 #	update_reticle()
 
 func update_is_holding_run():
