@@ -92,7 +92,7 @@ func update_input_move_action():
 		if playerMoveState == moveState.run or moveState.sprint:
 			playerQueuedMoveAction = moveAction.sidestep
 			jumpChargeUpTimer = TIMER_JUMP_CHARGE_UP
-			isInputAxisLocked = true
+#			isInputAxisLocked = true
 	
 	if playerQueuedMoveAction == moveAction.sidestep:
 		if jumpChargeUpTimer == 0:
@@ -100,11 +100,11 @@ func update_input_move_action():
 		elif Input.is_action_just_released("action_jump"):
 			do_action_sidestep()
 			jumpChargeUpTimer = 0
-			isInputAxisLocked = false
+#			isInputAxisLocked = false
 	elif playerQueuedMoveAction == moveAction.jump:
 		if Input.is_action_just_released("action_jump"):
 			do_action_jump()
-			isInputAxisLocked = false
+#			isInputAxisLocked = false
 
 
 #func update_reticle():
@@ -242,7 +242,7 @@ func calc_force(forceType, multiplier = 1):
 
 func calc_force_jump(multiplier = 1):
 	#calculates vector2 that represents the force from the starting phase of a jump
-	return inputAxis * FORCE_JUMP * multiplier
+	return velocity.normalized() * FORCE_JUMP * multiplier
 
 func calc_force_sidestep(multiplier = 1):
 	#calculates vector2 that represents the force from the starting phase of a sidestep
