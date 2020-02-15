@@ -67,4 +67,20 @@ script = ExtResource( 8 )
 
 [node name="RayCast2D" type="RayCast2D" parent="WallDetector"]
 enabled = true
+
+[node name="coyote_timer" type="Timer" parent="."]
+wait_time = 0.24
+one_shot = true
+
+[node name="jump_timer" type="Timer" parent="."]
+wait_time = 0.18
+one_shot = true
+
+[node name="sidestep_timer" type="Timer" parent="."]
+wait_time = 0.1
+one_shot = true
+
+[node name="jump_charge_timer" type="Timer" parent="."]
+wait_time = 0.4
+one_shot = true
 [connection signal="whileDetectWestWall" from="WallDetector" to="." method="_on_WallDetector_whileDetectWestWall"]

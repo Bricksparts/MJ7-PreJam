@@ -3,6 +3,10 @@ extends KinematicBody2D
 onready var pointer:= $Pointer
 onready var ray:= $Pointer/RayCast2D
 onready var reticle:= $Pointer/Reticle
+onready var coyote_timer: Timer = $coyote_timer
+onready var jump_timer: Timer = $jump_timer
+onready var sidestep_timer: Timer = $sidestep_timer
+onready var jump_charge_timer: Timer = $jump_charge_timer
 
 enum moveState {stopped, walk, run, glide, sprint, walled, falling, sidestep}
 enum moveAction {none, jump, sidestep, roll, vault}
@@ -44,9 +48,9 @@ const CLAMP_FUDGE = 5
 var isHoldingRun = false
 var isInputAxisLocked = false
 
-var jumpChargeUpTimer = 0
-var sidestepTimer = 0
-var airTimer = 0
+#var jumpChargeUpTimer = 0
+#var sidestepTimer = 0
+#var airTimer = 0
 
 var velocity = Vector2()
 var velocityMemory = Vector2()
@@ -58,10 +62,10 @@ var joyInput=Vector2(0,0)
 
 func _ready():
 	add_to_group("Player")
+	# TODO
 	get_parent().get_node("StaticBody2D").add_to_group("wallRunnable")
 
 func _physics_process(delta):
-	update_timers(delta)
 	update_input_axis()
 	update_is_holding_run()
 	update_player_state()
@@ -91,15 +95,15 @@ func update_input_move_action():
 	if Input.is_action_just_pressed("action_jump"):
 		if playerMoveState == moveState.run or moveState.sprint:
 			playerQueuedMoveAction = moveAction.sidestep
-			jumpChargeUpTimer = TIMER_JUMP_CHARGE_UP
+			jump_charge_timer.start()
 #			isInputAxisLocked = true
 	
 	if playerQueuedMoveAction == moveAction.sidestep:
-		if jumpChargeUpTimer == 0:
+		if jump_charge_timer.is_stopped():
 			playerQueuedMoveAction = moveAction.jump
 		elif Input.is_action_just_released("action_jump"):
 			do_action_sidestep()
-			jumpChargeUpTimer = 0
+			jump_charge_timer.stop()
 #			isInputAxisLocked = false
 	elif playerQueuedMoveAction == moveAction.jump:
 		if Input.is_action_just_released("action_jump"):
@@ -110,16 +114,6 @@ func update_input_move_action():
 #func update_reticle():
 #	reticle.draw_set_transform()
 #	 = inputAxis * 16
-
-func update_timers(delta):
-	airTimer = calc_timer(airTimer, delta)
-	sidestepTimer = calc_timer(sidestepTimer, delta)
-	jumpChargeUpTimer = calc_timer(jumpChargeUpTimer, delta)
-
-func calc_timer(timer, delta):
-	if timer > 0:
-		timer = max(0, timer - TICKS_PER_SECOND * delta)
-	return timer
 
 func update_player_state():
 	#Updates the player state and initiates actions based on player input
@@ -187,7 +181,7 @@ func update_player_state():
 	
 	elif playerMoveState == moveState.glide:
 		#Glide state
-		if airTimer == 0:
+		if jump_timer.is_stopped():
 			#Transition from Glide to one of the grounded states
 			touch_ground()
 	
@@ -195,7 +189,7 @@ func update_player_state():
 		#Sidestep state
 		
 		#NEED TO CHECK FOR WALLRUNABLE OBJECT
-		if sidestepTimer == 0:
+		if sidestep_timer.is_stopped():
 			#transition from Sidestep to one of the grounded states
 			sidestep_end()
 
@@ -203,14 +197,17 @@ func do_action_jump():
 	#Makes the player perform a jump
 	playerMoveState = moveState.glide
 	velocity += calc_force_jump()
-	airTimer = TIMER_JUMP
+	# starting the timer
+	jump_timer.start()
 
 func do_action_sidestep():
 	#Makes the player perform a sidestep
 	playerMoveState = moveState.sidestep
 	velocityMemory = velocity
 	velocity = calc_force_sidestep()
-	sidestepTimer = TIMER_SIDESTEP
+	# starting sidestep timer
+	#sidestepTimer = TIMER_SIDESTEP
+	sidestep_timer.start()
 
 func convert_grounded_speed_to_state():
 	if velocity.length() >= (THRESHOLD_RUN + CLAMP_FUDGE):

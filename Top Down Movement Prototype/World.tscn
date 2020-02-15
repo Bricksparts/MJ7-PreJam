@@ -6,16 +6,13 @@
 
 [sub_resource type="RectangleShape2D" id=1]
 
-[node name="World" type="Node"]
+[node name="World" type="Node2D"]
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
 position = Vector2( 38.9554, 19.7088 )
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2( 123.579, 82.6998 )
-__meta__ = {
-"_edit_group_": true
-}
 
 [node name="Sprite" type="Sprite" parent="StaticBody2D"]
 texture = ExtResource( 2 )
